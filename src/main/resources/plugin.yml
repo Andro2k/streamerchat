@@ -9,11 +9,12 @@ commands:
   streamkick:
     aliases: [skick, kick]
     description: Comandos para gestionar la conexión y chat con Kick
-    usage: /streamkick <auth|send|disconnect|status|toggle|help>
-    permission: streamerchat.user
-    permission-message: No tienes permiso para usar este comando.
+    usage: /streamkick <menu|auth|code|send|disconnect|status|toggle|help>
 
 permissions:
+  streamerchat.use:
+    description: Permite usar los comandos de StreamerChat cuando permissions.enabled está activado
+    default: true
   streamerchat.user:
     description: Permite vincular la cuenta de Kick, enviar y ver el chat
     default: true

@@ -24,12 +24,26 @@ public class StreamKickCommand implements CommandExecutor, TabCompleter {
     private final AuthManager authManager;
     private final KickSessionManager sessionManager;
 
-    private static final List<String> SUBCOMMANDS = Arrays.asList("menu", "auth", "send", "disconnect", "status", "toggle", "reload", "help");
+    private static final List<String> SUBCOMMANDS = Arrays.asList("menu", "auth", "code", "send", "disconnect", "status", "toggle", "reload", "help");
 
     public StreamKickCommand(StreamerChatPlugin plugin, AuthManager authManager, KickSessionManager sessionManager) {
         this.plugin = plugin;
         this.authManager = authManager;
         this.sessionManager = sessionManager;
+    }
+
+    private boolean checkUserPermission(Player player) {
+        boolean permissionsEnabled = plugin.getConfig().getBoolean("permissions.enabled", false);
+        if (!permissionsEnabled) {
+            return true;
+        }
+        String userPerm = plugin.getConfig().getString("permissions.user_permission", "streamerchat.use");
+        String adminPerm = plugin.getConfig().getString("permissions.admin_permission", "streamerchat.admin");
+        if (player.hasPermission(userPerm) || player.hasPermission(adminPerm)) {
+            return true;
+        }
+        MessageUtil.sendMessage(player, "<red>No tienes permiso para usar los comandos de StreamerChat. Requieres el permiso '" + userPerm + "'.</red>");
+        return false;
     }
 
     @Override
@@ -42,6 +56,10 @@ public class StreamKickCommand implements CommandExecutor, TabCompleter {
         }
 
         Player player = (Player) sender;
+
+        if (!checkUserPermission(player)) {
+            return true;
+        }
 
         if (args.length == 0 || "menu".equalsIgnoreCase(args[0])) {
             StreamKickMenu.openMenu(player, plugin);
@@ -57,6 +75,13 @@ public class StreamKickCommand implements CommandExecutor, TabCompleter {
 
         switch (subCommand) {
             case "auth" -> authManager.startAuthFlow(player);
+            case "code" -> {
+                if (args.length < 2) {
+                    MessageUtil.sendMessage(player, "<red>Uso correcto: /streamkick code <código_o_url></red>");
+                    return true;
+                }
+                authManager.handleManualCodeInput(player, args[1]);
+            }
             case "send", "msg" -> handleSendMessage(player, args);
             case "disconnect", "unlink" -> {
                 if (sessionManager.hasSession(player.getUniqueId())) {
@@ -134,6 +159,7 @@ public class StreamKickCommand implements CommandExecutor, TabCompleter {
     private void sendHelpMessage(Player player) {
         MessageUtil.sendMessage(player, "<gold>=== Comandos de StreamerChat (Kick) ===</gold>");
         MessageUtil.sendMessage(player, "<yellow>/streamkick auth <white>- Vincula tu cuenta de Kick mediante OAuth2</white></yellow>");
+        MessageUtil.sendMessage(player, "<yellow>/streamkick code <código_o_url> <white>- Ingresa manualmente el código OAuth2 si estás en servidor remoto/Docker</white></yellow>");
         MessageUtil.sendMessage(player, "<yellow>/streamkick send <mensaje> <white>- Envía un mensaje a tu chat de Kick</white></yellow>");
         MessageUtil.sendMessage(player, "<yellow>/streamkick disconnect <white>- Cierra la sesión y desvincula tu cuenta</white></yellow>");
         MessageUtil.sendMessage(player, "<yellow>/streamkick status <white>- Muestra el estado de tu conexión con Kick</white></yellow>");

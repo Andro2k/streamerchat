@@ -1,5 +1,13 @@
 # Configuración de StreamerChat - Kick Integration Plugin
 
+# Control de permisos del plugin
+permissions:
+  # true: requiere el permiso 'streamerchat.use' para usar los comandos (ideal para asignarlo a roles como Streamer en LuckPerms)
+  # false: cualquier jugador en el servidor puede usar el plugin sin requerir permisos
+  enabled: false
+  user_permission: "streamerchat.use"
+  admin_permission: "streamerchat.admin"
+
 kick:
   # Opcional: Solo si deseas usar tu propia App en dev.kick.com. Si se deja vacío, el plugin usará las credenciales integradas por defecto.
   client_id: ""
@@ -21,8 +29,6 @@ chat:
   #   {user_color}     -> Color HEX asignado al usuario en Kick (ej: #53FC18 o #FF5733)
   #   {user_formatted} -> Nombre del usuario formateado automáticamente con su color de Kick (<color:#HEX>Usuario</color>)
   #   {message}        -> Mensaje de chat
-  #
-  # Ejemplo usando el color HEX dinámico del usuario en Kick:
   format: "<green>[Kick]</green> {badge} <color:{user_color}>{user}</color><gray>:</gray> <white>{message}</white>"
 
 # Formato de insignias / rangos de Kick en el chat de Minecraft (MiniMessage)

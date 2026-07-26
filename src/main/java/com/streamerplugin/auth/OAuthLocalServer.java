@@ -56,14 +56,14 @@ public class OAuthLocalServer {
 
     public void start() {
         try {
-            server = HttpServer.create(new InetSocketAddress(port), 0);
+            server = HttpServer.create(new InetSocketAddress("0.0.0.0", port), 0);
             CallbackHandler callbackHandler = new CallbackHandler();
             server.createContext("/auth/callback", callbackHandler);
             server.createContext("/kick/callback", callbackHandler);
             server.createContext("/callback", callbackHandler);
             server.setExecutor(Executors.newSingleThreadExecutor());
             server.start();
-            LOGGER.log(Level.INFO, "[StreamerChat] Servidor HTTP OAuth2 iniciado en puerto {0}", port);
+            LOGGER.log(Level.INFO, "[StreamerChat] Servidor HTTP OAuth2 iniciado en 0.0.0.0:{0}", port);
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "[StreamerChat] Error al iniciar el servidor HTTP OAuth2 en puerto " + port, e);
         }
@@ -79,6 +79,31 @@ public class OAuthLocalServer {
     public void registerPendingState(String state, UUID playerUuid, String codeVerifier) {
         pendingStates.values().removeIf(AuthState::isExpired);
         pendingStates.put(state, new AuthState(playerUuid, codeVerifier));
+    }
+
+    public AuthState getPendingStateForPlayer(UUID playerUuid) {
+        pendingStates.values().removeIf(AuthState::isExpired);
+        for (AuthState state : pendingStates.values()) {
+            if (state.getPlayerUuid().equals(playerUuid) && !state.isExpired()) {
+                return state;
+            }
+        }
+        return null;
+    }
+
+    public AuthState getPendingState(String state) {
+        pendingStates.values().removeIf(AuthState::isExpired);
+        AuthState authState = pendingStates.get(state);
+        if (authState != null && !authState.isExpired()) {
+            return authState;
+        }
+        return null;
+    }
+
+    public void removePendingState(String state) {
+        if (state != null) {
+            pendingStates.remove(state);
+        }
     }
 
     private class CallbackHandler implements HttpHandler {

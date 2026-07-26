@@ -72,11 +72,59 @@ public class AuthManager {
         );
 
         String miniMsg = "<gold>=== Vinculación con Kick Chat ===</gold>\n" +
-                "<yellow>Haz clic en el siguiente enlace para iniciar sesión en Kick:</yellow>\n" +
+                "<yellow>1. Haz clic en el botón para iniciar sesión en Kick:</yellow>\n" +
                 "<green><bold><click:open_url:\"" + authUrl + "\"><hover:show_text:\"<yellow>Haz clic para abrir el enlace de autorización de Kick en tu navegador\">🔗 [HAGA CLIC AQUÍ PARA VINCULAR TU CUENTA DE KICK]</click></bold></green>\n" +
+                "<gray>2. Si la página no carga automáticamente (servidor remoto/Docker), copia el parámetro <b>code</b> o la URL completa de tu navegador y ejecuta:</gray>\n" +
+                "<aqua>/streamkick code <código_o_url></aqua>\n" +
                 "<gray>(El enlace expirará en 10 minutos)</gray>";
 
         MessageUtil.sendMessage(player, miniMsg);
+    }
+
+    public void handleManualCodeInput(Player player, String input) {
+        if (input == null || input.trim().isEmpty()) {
+            MessageUtil.sendMessage(player, "<red>Uso correcto: /streamkick code <código_o_url></red>");
+            return;
+        }
+
+        String raw = input.trim();
+        String code = null;
+        String state = null;
+
+        if (raw.contains("code=")) {
+            int codeIdx = raw.indexOf("code=");
+            String sub = raw.substring(codeIdx + 5);
+            int endIdx = sub.indexOf('&');
+            code = endIdx != -1 ? sub.substring(0, endIdx) : sub;
+        } else {
+            code = raw;
+        }
+
+        if (raw.contains("state=")) {
+            int stateIdx = raw.indexOf("state=");
+            String sub = raw.substring(stateIdx + 6);
+            int endIdx = sub.indexOf('&');
+            state = endIdx != -1 ? sub.substring(0, endIdx) : sub;
+        }
+
+        OAuthLocalServer.AuthState authState = null;
+        if (state != null) {
+            authState = localServer.getPendingState(state);
+        }
+        if (authState == null) {
+            authState = localServer.getPendingStateForPlayer(player.getUniqueId());
+        }
+
+        if (authState == null || authState.isExpired()) {
+            MessageUtil.sendMessage(player, "<red>[StreamerChat] No se encontró ninguna sesión de autenticación pendiente activa o expiró. Usa /streamkick auth para iniciar una nueva.</red>");
+            return;
+        }
+
+        if (state != null) {
+            localServer.removePendingState(state);
+        }
+        MessageUtil.sendMessage(player, "<yellow>[StreamerChat] Código recibido manualmente. Procesando autenticación con Kick...</yellow>");
+        handleAuthorizationCode(player.getUniqueId(), code, authState.getCodeVerifier());
     }
 
     public void handleAuthorizationCode(UUID playerUuid, String code, String codeVerifier) {
