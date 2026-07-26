@@ -77,14 +77,14 @@ public class OAuthLocalServer {
     }
 
     public void registerPendingState(String state, UUID playerUuid, String codeVerifier) {
-        pendingStates.values().removeIf(AuthState::isExpired);
+        pendingStates.values().removeIf(s -> s != null && s.isExpired());
         pendingStates.put(state, new AuthState(playerUuid, codeVerifier));
     }
 
     public AuthState getPendingStateForPlayer(UUID playerUuid) {
-        pendingStates.values().removeIf(AuthState::isExpired);
+        pendingStates.values().removeIf(s -> s != null && s.isExpired());
         for (AuthState state : pendingStates.values()) {
-            if (state.getPlayerUuid().equals(playerUuid) && !state.isExpired()) {
+            if (state != null && state.getPlayerUuid().equals(playerUuid) && !state.isExpired()) {
                 return state;
             }
         }
@@ -92,7 +92,7 @@ public class OAuthLocalServer {
     }
 
     public AuthState getPendingState(String state) {
-        pendingStates.values().removeIf(AuthState::isExpired);
+        pendingStates.values().removeIf(s -> s != null && s.isExpired());
         AuthState authState = pendingStates.get(state);
         if (authState != null && !authState.isExpired()) {
             return authState;
