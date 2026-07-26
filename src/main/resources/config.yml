@@ -1,0 +1,34 @@
+# Configuración de StreamerChat - Kick Integration Plugin
+
+kick:
+  # Opcional: Solo si deseas usar tu propia App en dev.kick.com. Si se deja vacío, el plugin usará las credenciales integradas por defecto.
+  client_id: ""
+  client_secret: ""
+  # URL de callback para OAuth
+  redirect_uri: "http://localhost:8080/auth/callback"
+  # Puerto interno para la autorización de OAuth2 (por defecto: 8080)
+  auth_server_port: 8080
+  # Permisos solicitados a Kick
+  scopes: "user:read chat:write"
+
+# Formato del chat en Minecraft
+chat:
+  # Formato con el que se mostrará el mensaje en Minecraft
+  # Variables disponibles: {streamer}, {badge}, {user}, {message}
+  format: "&a[Kick] {badge} &b{user}&7: &f{message}"
+
+# Formato de insignias / rangos de Kick en el chat de Minecraft
+badges:
+  broadcaster: "&c[STREAMER]"
+  moderator: "&2[MOD]"
+  subscriber: "&d[SUB]"
+  vip: "&5[VIP]"
+  og: "&6[OG]"
+  default: "&7[VIEWER]"
+
+# Opciones avanzadas
+settings:
+  # Reconexión automática de WebSocket en segundos
+  reconnect_interval_seconds: 5
+  # Guardar tokens de manera persistente en plugins/StreamerChat/users.yml
+  save_sessions: true

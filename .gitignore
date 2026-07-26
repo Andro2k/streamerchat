@@ -1,0 +1,26 @@
+# Maven target directory
+target/
+*.jar
+
+# Credentials & secret files (NEVER commit to Git)
+secrets.properties
+*.env
+.env
+credentials.yml
+users.yml
+plugins/StreamerChat/secrets.properties
+plugins/StreamerChat/credentials.yml
+plugins/StreamerChat/users.yml
+
+# Test server directory
+test-server/
+
+# IDE & OS files
+.vscode/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.DS_Store
+Thumbs.db

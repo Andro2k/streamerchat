@@ -1,0 +1,22 @@
+name: StreamerChat
+version: '0.1'
+main: com.streamerplugin.StreamerChatPlugin
+api-version: '1.20'
+authors: [ StreamerPluginTeam ]
+description: Minecraft Kick Chat Integration Plugin with OAuth2 and WebSockets
+
+commands:
+  streamkick:
+    aliases: [skick, kick]
+    description: Comandos para gestionar la conexión y chat con Kick
+    usage: /streamkick <auth|send|disconnect|status|toggle|help>
+    permission: streamerchat.user
+    permission-message: No tienes permiso para usar este comando.
+
+permissions:
+  streamerchat.user:
+    description: Permite vincular la cuenta de Kick, enviar y ver el chat
+    default: true
+  streamerchat.admin:
+    description: Permite recargar la configuración y credenciales del plugin
+    default: op
