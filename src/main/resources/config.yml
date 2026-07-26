@@ -11,20 +11,28 @@ kick:
   # Permisos solicitados a Kick
   scopes: "user:read chat:write"
 
-# Formato del chat en Minecraft
+# Formato del chat en Minecraft usando Kyori MiniMessage
 chat:
   # Formato con el que se mostrará el mensaje en Minecraft
-  # Variables disponibles: {streamer}, {badge}, {user}, {message}
-  format: "&a[Kick] {badge} &b{user}&7: &f{message}"
+  # Variables disponibles:
+  #   {streamer}       -> Nombre del streamer del canal
+  #   {badge}          -> Rango/Insignia formateada de Kick
+  #   {user}           -> Nombre en texto plano del usuario que envió el mensaje
+  #   {user_color}     -> Color HEX asignado al usuario en Kick (ej: #53FC18 o #FF5733)
+  #   {user_formatted} -> Nombre del usuario formateado automáticamente con su color de Kick (<color:#HEX>Usuario</color>)
+  #   {message}        -> Mensaje de chat
+  #
+  # Ejemplo usando el color HEX dinámico del usuario en Kick:
+  format: "<green>[Kick]</green> {badge} <color:{user_color}>{user}</color><gray>:</gray> <white>{message}</white>"
 
-# Formato de insignias / rangos de Kick en el chat de Minecraft
+# Formato de insignias / rangos de Kick en el chat de Minecraft (MiniMessage)
 badges:
-  broadcaster: "&c[STREAMER]"
-  moderator: "&2[MOD]"
-  subscriber: "&d[SUB]"
-  vip: "&5[VIP]"
-  og: "&6[OG]"
-  default: "&7[VIEWER]"
+  broadcaster: "<red>[STREAMER]</red>"
+  moderator: "<dark_green>[MOD]</dark_green>"
+  subscriber: "<light_purple>[SUB]</light_purple>"
+  vip: "<dark_purple>[VIP]</dark_purple>"
+  og: "<gold>[OG]</gold>"
+  default: "<gray>[VIEWER]</gray>"
 
 # Opciones avanzadas
 settings:

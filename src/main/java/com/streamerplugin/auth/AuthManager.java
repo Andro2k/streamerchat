@@ -16,6 +16,7 @@ import com.streamerplugin.StreamerChatPlugin;
 import com.streamerplugin.kick.KickApiClient;
 import com.streamerplugin.kick.KickSessionManager;
 import com.streamerplugin.kick.KickUserSession;
+import com.streamerplugin.util.MessageUtil;
 
 public class AuthManager {
 
@@ -70,10 +71,12 @@ public class AuthManager {
                 URLEncoder.encode(codeChallenge, StandardCharsets.UTF_8)
         );
 
-        player.sendMessage(ChatColor.GOLD + "=== Vinculación con Kick Chat ===");
-        player.sendMessage(ChatColor.YELLOW + "Haz clic en el siguiente enlace para iniciar sesión en Kick:");
-        player.sendMessage(ChatColor.AQUA + authUrl);
-        player.sendMessage(ChatColor.GRAY + "(El enlace expirará en 10 minutos)");
+        String miniMsg = "<gold>=== Vinculación con Kick Chat ===</gold>\n" +
+                "<yellow>Haz clic en el siguiente enlace para iniciar sesión en Kick:</yellow>\n" +
+                "<green><bold><click:open_url:\"" + authUrl + "\"><hover:show_text:\"<yellow>Haz clic para abrir el enlace de autorización de Kick en tu navegador\">🔗 [HAGA CLIC AQUÍ PARA VINCULAR TU CUENTA DE KICK]</click></bold></green>\n" +
+                "<gray>(El enlace expirará en 10 minutos)</gray>";
+
+        MessageUtil.sendMessage(player, miniMsg);
     }
 
     public void handleAuthorizationCode(UUID playerUuid, String code, String codeVerifier) {

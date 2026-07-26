@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -17,6 +16,7 @@ import com.streamerplugin.auth.AuthManager;
 import com.streamerplugin.gui.StreamKickMenu;
 import com.streamerplugin.kick.KickSessionManager;
 import com.streamerplugin.kick.KickUserSession;
+import com.streamerplugin.util.MessageUtil;
 
 public class StreamKickCommand implements CommandExecutor, TabCompleter {
 
@@ -36,7 +36,7 @@ public class StreamKickCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender == null || !(sender instanceof Player)) {
             if (sender != null) {
-                sender.sendMessage(ChatColor.RED + "Este comando solo puede ser ejecutado por un jugador en el juego.");
+                MessageUtil.sendMessage(sender, "<red>Este comando solo puede ser ejecutado por un jugador en el juego.</red>");
             }
             return true;
         }
@@ -62,40 +62,40 @@ public class StreamKickCommand implements CommandExecutor, TabCompleter {
                 if (sessionManager.hasSession(player.getUniqueId())) {
                     sessionManager.unregisterSession(player.getUniqueId());
                     authManager.removeUserSession(player.getUniqueId());
-                    player.sendMessage(ChatColor.YELLOW + "[StreamerChat] Tu cuenta de Kick ha sido desvinculada y la sesión cerrada.");
+                    MessageUtil.sendMessage(player, "<yellow>[StreamerChat] Tu cuenta de Kick ha sido desvinculada y la sesión cerrada.</yellow>");
                 } else {
-                    player.sendMessage(ChatColor.RED + "[StreamerChat] No tienes ninguna cuenta de Kick vinculada.");
+                    MessageUtil.sendMessage(player, "<red>[StreamerChat] No tienes ninguna cuenta de Kick vinculada.</red>");
                 }
             }
             case "status" -> {
                 KickUserSession session = sessionManager.getSession(player.getUniqueId());
-                player.sendMessage(ChatColor.GOLD + "=== Estado de Kick Chat ===");
+                MessageUtil.sendMessage(player, "<gold>=== Estado de Kick Chat ===</gold>");
                 if (session != null) {
-                    player.sendMessage(ChatColor.YELLOW + "Cuenta Kick: " + ChatColor.GREEN + session.getKickUsername());
-                    player.sendMessage(ChatColor.YELLOW + "Chatroom ID: " + ChatColor.WHITE + session.getChatroomId());
+                    MessageUtil.sendMessage(player, "<yellow>Cuenta Kick: <green>" + session.getKickUsername() + "</green></yellow>");
+                    MessageUtil.sendMessage(player, "<yellow>Chatroom ID: <white>" + session.getChatroomId() + "</white></yellow>");
                     boolean wsConnected = session.getWsClient() != null && session.getWsClient().isConnected();
-                    player.sendMessage(ChatColor.YELLOW + "WebSocket Conectado: " + (wsConnected ? ChatColor.GREEN + "SÍ" : ChatColor.RED + "NO"));
-                    player.sendMessage(ChatColor.YELLOW + "Chat en juego: " + (session.isChatEnabled() ? ChatColor.GREEN + "Activado" : ChatColor.RED + "Desactivado"));
+                    MessageUtil.sendMessage(player, "<yellow>WebSocket Conectado: " + (wsConnected ? "<green>SÍ</green>" : "<red>NO</red>") + "</yellow>");
+                    MessageUtil.sendMessage(player, "<yellow>Chat en juego: " + (session.isChatEnabled() ? "<green>Activado</green>" : "<red>Desactivado</red>") + "</yellow>");
                 } else {
-                    player.sendMessage(ChatColor.RED + "Estado: No vinculado. Usa /streamkick auth para vincular tu cuenta.");
+                    MessageUtil.sendMessage(player, "<red>Estado: No vinculado. Usa /streamkick auth para vincular tu cuenta.</red>");
                 }
             }
             case "toggle" -> {
                 KickUserSession currentSession = sessionManager.getSession(player.getUniqueId());
                 if (currentSession != null) {
                     boolean enabled = currentSession.toggleChatEnabled();
-                    player.sendMessage(ChatColor.YELLOW + "[StreamerChat] Chat de Kick en juego: " + (enabled ? ChatColor.GREEN + "ACTIVADO" : ChatColor.RED + "DESACTIVADO"));
+                    MessageUtil.sendMessage(player, "<yellow>[StreamerChat] Chat de Kick en juego: " + (enabled ? "<green>ACTIVADO</green>" : "<red>DESACTIVADO</red>") + "</yellow>");
                 } else {
-                    player.sendMessage(ChatColor.RED + "[StreamerChat] Primero debes vincular tu cuenta de Kick usando /streamkick auth.");
+                    MessageUtil.sendMessage(player, "<red>[StreamerChat] Primero debes vincular tu cuenta de Kick usando /streamkick auth.</red>");
                 }
             }
             case "reload" -> {
                 if (!player.hasPermission("streamerchat.admin")) {
-                    player.sendMessage(ChatColor.RED + "No tienes permiso para ejecutar este comando.");
+                    MessageUtil.sendMessage(player, "<red>No tienes permiso para ejecutar este comando.</red>");
                     return true;
                 }
                 plugin.reloadPluginConfig();
-                player.sendMessage(ChatColor.GREEN + "[StreamerChat] Configuración y credenciales recargadas exitosamente.");
+                MessageUtil.sendMessage(player, "<green>[StreamerChat] Configuración y credenciales recargadas exitosamente.</green>");
             }
             default -> sendHelpMessage(player);
         }
@@ -105,18 +105,18 @@ public class StreamKickCommand implements CommandExecutor, TabCompleter {
 
     private void handleSendMessage(Player player, String[] args) {
         if (args.length < 2) {
-            player.sendMessage(ChatColor.RED + "Uso correcto: /streamkick send <mensaje>");
+            MessageUtil.sendMessage(player, "<red>Uso correcto: /streamkick send <mensaje></red>");
             return;
         }
 
         KickUserSession session = sessionManager.getSession(player.getUniqueId());
         if (session == null || session.getToken() == null) {
-            player.sendMessage(ChatColor.RED + "[StreamerChat] Primero debes vincular tu cuenta de Kick usando /streamkick auth.");
+            MessageUtil.sendMessage(player, "<red>[StreamerChat] Primero debes vincular tu cuenta de Kick usando /streamkick auth.</red>");
             return;
         }
 
         String messageContent = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
-        player.sendMessage(ChatColor.YELLOW + "[StreamerChat] Enviando mensaje a Kick...");
+        MessageUtil.sendMessage(player, "<yellow>[StreamerChat] Enviando mensaje a Kick...</yellow>");
 
         plugin.getApiClient().sendChatMessage(
                 session.getToken().getAccessToken(),
@@ -124,22 +124,22 @@ public class StreamKickCommand implements CommandExecutor, TabCompleter {
                 messageContent
         ).thenAccept(success -> {
             if (success) {
-                player.sendMessage(ChatColor.GREEN + "[StreamerChat] Mensaje enviado a Kick: " + ChatColor.WHITE + messageContent);
+                MessageUtil.sendMessage(player, "<green>[StreamerChat] Mensaje enviado a Kick: <white>" + messageContent + "</white></green>");
             } else {
-                player.sendMessage(ChatColor.RED + "[StreamerChat] No se pudo enviar el mensaje a Kick. Verifica tus permisos/tokens.");
+                MessageUtil.sendMessage(player, "<red>[StreamerChat] No se pudo enviar el mensaje a Kick. Verifica tus permisos/tokens.</red>");
             }
         });
     }
 
     private void sendHelpMessage(Player player) {
-        player.sendMessage(ChatColor.GOLD + "=== Comandos de StreamerChat (Kick) ===");
-        player.sendMessage(ChatColor.YELLOW + "/streamkick auth " + ChatColor.WHITE + "- Vincula tu cuenta de Kick mediante OAuth2");
-        player.sendMessage(ChatColor.YELLOW + "/streamkick send <mensaje> " + ChatColor.WHITE + "- Envía un mensaje a tu chat de Kick");
-        player.sendMessage(ChatColor.YELLOW + "/streamkick disconnect " + ChatColor.WHITE + "- Cierra la sesión y desvincula tu cuenta");
-        player.sendMessage(ChatColor.YELLOW + "/streamkick status " + ChatColor.WHITE + "- Muestra el estado de tu conexión con Kick");
-        player.sendMessage(ChatColor.YELLOW + "/streamkick toggle " + ChatColor.WHITE + "- Activa o desactiva la visibilidad del chat");
+        MessageUtil.sendMessage(player, "<gold>=== Comandos de StreamerChat (Kick) ===</gold>");
+        MessageUtil.sendMessage(player, "<yellow>/streamkick auth <white>- Vincula tu cuenta de Kick mediante OAuth2</white></yellow>");
+        MessageUtil.sendMessage(player, "<yellow>/streamkick send <mensaje> <white>- Envía un mensaje a tu chat de Kick</white></yellow>");
+        MessageUtil.sendMessage(player, "<yellow>/streamkick disconnect <white>- Cierra la sesión y desvincula tu cuenta</white></yellow>");
+        MessageUtil.sendMessage(player, "<yellow>/streamkick status <white>- Muestra el estado de tu conexión con Kick</white></yellow>");
+        MessageUtil.sendMessage(player, "<yellow>/streamkick toggle <white>- Activa o desactiva la visibilidad del chat</white></yellow>");
         if (player.hasPermission("streamerchat.admin")) {
-            player.sendMessage(ChatColor.YELLOW + "/streamkick reload " + ChatColor.WHITE + "- Recarga la configuración del plugin");
+            MessageUtil.sendMessage(player, "<yellow>/streamkick reload <white>- Recarga la configuración del plugin</white></yellow>");
         }
     }
 

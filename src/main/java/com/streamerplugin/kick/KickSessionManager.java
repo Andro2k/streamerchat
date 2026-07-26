@@ -9,6 +9,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import com.streamerplugin.StreamerChatPlugin;
+import com.streamerplugin.util.MessageUtil;
 
 public class KickSessionManager {
 
@@ -27,7 +28,7 @@ public class KickSessionManager {
         KickWebSocketClient wsClient = new KickWebSocketClient(
                 session.getChatroomId(),
                 session.getKickUsername(),
-                (sender, message, badgeType) -> handleIncomingKickMessage(session.getPlayerUuid(), sender, message, badgeType),
+                (sender, message, badgeType, userColor) -> handleIncomingKickMessage(session.getPlayerUuid(), sender, message, badgeType, userColor),
                 plugin.getLogger()
         );
 
@@ -35,7 +36,7 @@ public class KickSessionManager {
         wsClient.connect();
     }
 
-    private void handleIncomingKickMessage(UUID playerUuid, String sender, String message, String badgeType) {
+    private void handleIncomingKickMessage(UUID playerUuid, String sender, String message, String badgeType, String userColor) {
         KickUserSession session = activeSessions.get(playerUuid);
         if (session == null || !session.isChatEnabled()) return;
 
@@ -44,31 +45,33 @@ public class KickSessionManager {
 
         String rawFormat = plugin.getConfig().getString("chat.format");
         if (rawFormat == null) {
-            rawFormat = "&a[Kick] {badge} &b{user}&7: &f{message}";
+            rawFormat = "<green>[Kick]</green> {badge} <color:{user_color}>{user}</color><gray>:</gray> <white>{message}</white>";
         }
 
         String streamerName = session.getKickUsername() != null ? session.getKickUsername() : "";
         String safeSender = sender != null ? sender : "Anónimo";
         String cleanMessage = filterEmotes(message != null ? message : "");
+        String safeColor = (userColor != null && !userColor.trim().isEmpty()) ? userColor.trim() : "#53FC18";
+        String userFormatted = "<color:" + safeColor + ">" + safeSender + "</color>";
 
         if (cleanMessage.isEmpty()) return;
 
         String rawBadge = plugin.getConfig().getString("badges." + (badgeType != null ? badgeType : "default"));
         if (rawBadge == null) {
-            rawBadge = plugin.getConfig().getString("badges.default", "&7[VIEWER]");
+            rawBadge = plugin.getConfig().getString("badges.default", "<gray>[VIEWER]</gray>");
         }
 
         String formattedMessage = rawFormat
                 .replace("{streamer}", streamerName)
                 .replace("{badge}", rawBadge)
                 .replace("{user}", safeSender)
+                .replace("{user_color}", safeColor)
+                .replace("{user_formatted}", userFormatted)
                 .replace("{message}", cleanMessage);
-
-        String colorizedMessage = ChatColor.translateAlternateColorCodes('&', formattedMessage);
 
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (player.isOnline()) {
-                player.sendMessage(colorizedMessage);
+                MessageUtil.sendMessage(player, formattedMessage);
             }
         });
     }

@@ -23,7 +23,7 @@ public class KickWebSocketClient implements WebSocket.Listener {
 
     @FunctionalInterface
     public interface ChatMessageConsumer {
-        void accept(String sender, String message, String badgeType);
+        void accept(String sender, String message, String badgeType, String userColor);
     }
 
     private final String chatroomId;
@@ -114,11 +114,24 @@ public class KickWebSocketClient implements WebSocket.Listener {
                     String content = dataJson.has("content") ? dataJson.get("content").getAsString() : "";
                     String senderName = "Anónimo";
                     String badgeType = "default";
+                    String userColor = "#53FC18";
 
                     if (dataJson.has("sender")) {
                         JsonObject sender = dataJson.getAsJsonObject("sender");
                         if (sender.has("username")) {
                             senderName = sender.get("username").getAsString();
+                        }
+
+                        if (sender.has("identity") && sender.getAsJsonObject("identity").has("color")) {
+                            String colorStr = sender.getAsJsonObject("identity").get("color").getAsString();
+                            if (colorStr != null && !colorStr.trim().isEmpty()) {
+                                userColor = colorStr.trim().startsWith("#") ? colorStr.trim() : "#" + colorStr.trim();
+                            }
+                        } else if (sender.has("color")) {
+                            String colorStr = sender.get("color").getAsString();
+                            if (colorStr != null && !colorStr.trim().isEmpty()) {
+                                userColor = colorStr.trim().startsWith("#") ? colorStr.trim() : "#" + colorStr.trim();
+                            }
                         }
 
                         JsonArray badgesArray = null;
@@ -153,7 +166,7 @@ public class KickWebSocketClient implements WebSocket.Listener {
                     }
 
                     if (messageHandler != null && !content.isEmpty()) {
-                        messageHandler.accept(senderName, content, badgeType);
+                        messageHandler.accept(senderName, content, badgeType, userColor);
                     }
                 }
             }
